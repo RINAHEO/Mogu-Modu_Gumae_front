@@ -114,26 +114,23 @@ class FirstPage extends StatelessWidget {
   }
 
   Widget _buildButton(String text, VoidCallback onPressed) {
-    return Container(
-      width: double.infinity,
-      height: 58,
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-      decoration: ShapeDecoration(
-        color: Color(0xFFFFD3F0),
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: Color(0xFFFFD3F0), // 배경색을 투명으로 설정
+        minimumSize: Size(double.infinity, 58), // 버튼 크기를 Container에 맞추기
+        padding: EdgeInsets.zero, // 기본 패딩 제거
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10), // Container와 같은 모서리 둥글기
         ),
       ),
-      child: TextButton(
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Color(0xFFB34FD1),
-            fontSize: 18,
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w400,
-          ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Color(0xFFB34FD1),
+          fontSize: 18,
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w400,
         ),
       ),
     );

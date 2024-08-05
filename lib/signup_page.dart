@@ -12,8 +12,10 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
+        preferredSize: Size.fromHeight(60.0),
         child: AppBar(
+          title: Text('회원가입'),
+          // titleTextStyle: ,
           backgroundColor: Colors.white,
           elevation: 0, // 그림자 제거
           leading: IconButton(
