@@ -10,7 +10,8 @@ class MoguApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-    home: LoadingPage(),
+    // home: LoadingPage(),
+      home: LoadingPage(),
     );
   }
 }
