@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.reorder),
+          color: Color(0xFFFFE9F8),
           onPressed: () {
             // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
           },
@@ -23,12 +26,14 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.search),
+            color: Color(0xFFFFE9F8),
             onPressed: () {
               // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
             },
           ),
           IconButton(
             icon: Icon(Icons.notifications),
+            color: Color(0xFFFFE9F8),
             onPressed: () {
               // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
             },
