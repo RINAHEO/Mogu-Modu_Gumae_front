@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'admin/complaint/notice_create_page.dart';
 import 'firstStep/loading_page.dart';
 
 void main() {
@@ -11,7 +12,7 @@ class MoguApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
     // home: LoadingPage(),
-      home: LoadingPage(),
+      home: NoticeCreatePage(),
     );
   }
 }
