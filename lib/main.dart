@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user/firstStep/loading_page.dart';
+import 'firstStep/loading_page.dart';
 
 void main() {
   runApp(const MoguApp());
