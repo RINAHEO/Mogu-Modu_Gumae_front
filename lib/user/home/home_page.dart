@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:mogu_app/user/home/post/post_create_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -58,6 +60,32 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: ClipOval(
+        child: Material(
+          child: InkWell(
+            splashColor: Colors.white.withOpacity(0.3), // 물결 효과 색상
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PostCreatePage()), // PostCreatePage로 이동
+              );
+            },
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: Center(
+                child: SvgPicture.asset(
+                  "assets/icons/post_create_button.svg",
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -84,4 +112,27 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Color(0xFFB34FD1) : Color(0xFFFFBDE9),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Color(0xFFB34FD1) : Color(0xFFFFBDE9),
+              fontSize: 9,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
