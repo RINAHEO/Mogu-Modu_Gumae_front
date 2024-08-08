@@ -21,6 +21,7 @@ dependencies:
   geolocator: ^9.0.2
   permission_handler: ^11.3.1
   webview_flutter: ^4.0.0
+  google_mobile_ads: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +34,14 @@ flutter:
   assets:
   - assets/Mogulogo.png
   - assets/icons/post_create_button.svg
+  - assets/icons/selected_home.svg
+  - assets/icons/selected_chat.svg
+  - assets/icons/selected_history.svg
+  - assets/icons/selected_my_page.svg
+  - assets/icons/unselected_home.svg
+  - assets/icons/unselected_chat.svg
+  - assets/icons/unselected_history.svg
+  - assets/icons/unselected_my_page.svg
 
 flutter_native_splash:
     image: assets/Mogulogo.png

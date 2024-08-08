@@ -39,6 +39,9 @@
         <meta-data
             android:name="com.naver.maps.map.CLIENT_ID"
             android:value="5976phb2xh"/>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8290073486354091~5930133155"/>
     </application>
     <queries>
         <intent>
