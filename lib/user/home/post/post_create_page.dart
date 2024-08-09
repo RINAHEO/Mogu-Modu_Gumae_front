@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
@@ -34,22 +35,49 @@ class _PostCreatePageState extends State<PostCreatePage> {
     super.initState();
     priceController.addListener(_updatePrice);
     personController.addListener(_updatePerson);
-    _initCurrentLocation();
-    _requestPermissions(context);
+    _requestPermissions(context).then((_) {
+      _initCurrentLocation();
+    });
   }
 
   Future<void> _initCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services are disabled.');
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('Location permissions are denied');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('Location permissions are permanently denied');
+      return;
+    }
+
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-    currentPosition = NLatLng(position.latitude, position.longitude);
+
+    setState(() {
+      currentPosition = NLatLng(position.latitude, position.longitude);
+    });
   }
 
   Future<void> _requestPermissions(BuildContext context) async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.photos,
       Permission.camera,
-      Permission.storage,
+      // Permission.storage,
       Permission.location,
     ].request();
 
@@ -57,9 +85,9 @@ class _PostCreatePageState extends State<PostCreatePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('모든 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.'),
           action: SnackBarAction(
-          label: '설정으로 이동',
-          onPressed: () {
-            openAppSettings();
+            label: '설정으로 이동',
+            onPressed: () {
+              openAppSettings();
             },
           ),
         ),
@@ -259,31 +287,46 @@ class _PostCreatePageState extends State<PostCreatePage> {
     await controller.updateCamera(cameraUpdate);
   }
 
+  double truncateCoordinate(double coord, {int precision = 3}) {
+    double mod = pow(10.0, precision).toDouble();
+    return ((coord * mod).round().toDouble() / mod);
+  }
+
   Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
     String apiKey = '92847C2D-0B70-3586-8343-66FF39FB047E';
-    String url =
-        'https://api.vworld.kr/req/address?service=address&request=getAddress&key=$apiKey&point=$longitude,$latitude&type=ROAD';
+
+    latitude = truncateCoordinate(latitude, precision: 3);
+    longitude = truncateCoordinate(longitude, precision: 3);
+
+    String baseUrl =
+        'https://api.vworld.kr/req/address?service=address&request=getAddress&key=$apiKey&point=';
 
     try {
-      print('Sending request to: $url');
-      final response = await http.get(Uri.parse(url));
+      for (int i = 0; i < 10; i++) {
+        String url = '$baseUrl$longitude,$latitude&type=ROAD';
+        print('Sending request to: $url');
+        final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 200) {
-        var jsonResponse = json.decode(response.body);
-        var status = jsonResponse['response']['status'];
+        if (response.statusCode == 200) {
+          var jsonResponse = json.decode(response.body);
 
-        if (status == 'OK') {
-          var address = jsonResponse['response']['result'][0]['text'];
-          print('Address found: $address');
-          return address;
-        } else {
-          print('Error: ${jsonResponse['response']['error']['text']}');
-          return '주소를 찾을 수 없습니다';
+          if (jsonResponse['response'] != null && jsonResponse['response']['status'] == 'OK') {
+            var results = jsonResponse['response']['result'];
+            if (results != null && results.isNotEmpty) {
+              var address = results[0]['text'];
+              print('Address found: $address');
+              return address;
+            }
+          }
         }
-      } else {
-        print('Failed to load address, status code: ${response.statusCode}');
-        throw Exception('Failed to load address');
+
+        // If address not found, adjust the coordinates slightly
+        latitude += 0.001;
+        longitude += 0.001;
       }
+
+      // Fallback address if no valid address is found
+      return '알 수 없는 위치';
     } catch (e) {
       print('Exception caught: $e');
       return '네트워크 오류가 발생했습니다';
@@ -310,6 +353,9 @@ class _PostCreatePageState extends State<PostCreatePage> {
             onMapTapped: (point, latLng) {
               Navigator.pop(context, latLng);
             },
+            onSymbolTapped: (symbol){
+              Navigator.pop(context, symbol.position);
+            },
           ),
         ),
       ),
@@ -318,7 +364,6 @@ class _PostCreatePageState extends State<PostCreatePage> {
     if (selectedLocation != null) {
       String currentAddress = await getAddressFromCoordinates(selectedLocation.latitude, selectedLocation.longitude);
       setState(() {
-        // getAddressFromCoordinates(37.5666103, 126.9783882);
         meetingPlace = currentAddress;
       });
     }
