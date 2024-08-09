@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mogu_app/user/home/post/post_create_page.dart';
 import 'package:mogu_app/user/home/search_page.dart';
+import 'package:mogu_app/user/myPage/account_management_page.dart';
 
 import '../myPage/setting_page.dart';
 import '../myPage/update_profile_page.dart';
@@ -275,8 +276,13 @@ class _HomePageState extends State<HomePage> {
                           ListTile(
                             title: Text('계정관리'),
                             onTap: () {
-                              // 계정관리 페이지로 이동
                               Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AccountManagementPage(),
+                                ),
+                              );
                             },
                           ),
                           ListTile(
