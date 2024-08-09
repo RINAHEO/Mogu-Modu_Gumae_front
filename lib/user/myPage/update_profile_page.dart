@@ -9,6 +9,7 @@ class UpdateProfilePage extends StatefulWidget {
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
   String _nickname = '모비짱'; // 초기 닉네임
+  String _address = '서울시 서대문구 남가좌동'; // 초기 주소
   final String _profileImageUrl = ''; // 프로필 이미지 URL (초기값은 비어 있음)
 
   @override
@@ -105,6 +106,21 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
               ],
             ),
             SizedBox(height: 20),
+            // 주소 변경 텍스트 필드
+            TextField(
+              controller: TextEditingController(text: _address),
+              decoration: InputDecoration(
+                labelText: '주소',
+                border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.edit_location),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _address = value;
+                });
+              },
+            ),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 _saveProfileChanges();
@@ -164,6 +180,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     Navigator.pop(context); // 저장 후 페이지 닫기
   }
 }
+
 
 
 
