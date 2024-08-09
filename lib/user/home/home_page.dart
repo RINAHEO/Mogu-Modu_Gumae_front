@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mogu_app/user/home/post/post_create_page.dart';
+import 'package:mogu_app/user/home/search_page.dart';
+
+import '../myPage/setting_page.dart';
+import 'menu_page.dart';
+import 'notification_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -71,7 +76,27 @@ class _HomePageState extends State<HomePage> {
           icon: Icon(Icons.reorder),
           color: Color(0xFFFFD3F0),
           onPressed: () {
-            // 리오더 아이콘을 눌렀을 때 실행될 동작을 정의하세요.
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    MenuPage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(-1.0, 0.0); // 왼쪽에서 시작
+                  const end = Offset.zero;
+                  const curve = Curves.ease;
+
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+              ),
+            );
           },
         )
             : null, // 홈 화면이 아니면 leading을 null로 설정
@@ -99,7 +124,27 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.search),
               color: Color(0xFFFFD3F0),
               onPressed: () {
-                // 검색 버튼을 눌렀을 때 실행될 동작을 정의하세요.
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        SearchPage(),
+                    transitionsBuilder: (context, animation, secondaryAnimation,
+                        child) {
+                      const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
               },
             ),
           IconButton(
@@ -108,14 +153,55 @@ class _HomePageState extends State<HomePage> {
             ),
             color: Color(0xFFFFD3F0),
             onPressed: () {
-              // 알림 또는 설정 버튼을 눌렀을 때 실행될 동작을 정의하세요.
+              if (_selectedIndex != 3) {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        NotificationPage(),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        SettingPage(),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              }
             },
-          ),
+          )
+          ,
         ],
       ),
       body: Column(
         children: <Widget>[
-          if (_isAdLoaded)
+          if (_selectedIndex == 0 && _isAdLoaded) // 홈 화면일 때만 배너 광고 표시
             Container(
               alignment: Alignment.center,
               child: AdWidget(ad: _bannerAd!),
@@ -179,14 +265,16 @@ class _HomePageState extends State<HomePage> {
         unselectedItemColor: Color(0xFFFFBDE9),
         onTap: _onItemTapped,
       ),
-      floatingActionButton: ClipOval(
+      floatingActionButton: _selectedIndex == 0
+          ? ClipOval(
         child: Material(
           child: InkWell(
             splashColor: Colors.white.withOpacity(0.3), // 물결 효과 색상
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => PostCreatePage()), // PostCreatePage로 이동
+                MaterialPageRoute(
+                    builder: (context) => PostCreatePage()), // PostCreatePage로 이동
               );
             },
             child: SizedBox(
@@ -204,9 +292,12 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-      ),
+      )
+          : null, // 홈 화면에서만 플로팅 액션 버튼을 표시
     );
   }
 }
+
+
 
 
