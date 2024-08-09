@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
   int _selectedIndex = 0;
+  int _selectedHistoryIndex = 0;
 
   @override
   void initState() {
@@ -66,7 +67,81 @@ class _HomePageState extends State<HomePage> {
     List<Widget> widgetOptions = <Widget>[
       Center(child: Text('홈 화면')),
       Center(child: Text('채팅 화면')),
-      Center(child: Text('모구내역 화면')),
+      Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedHistoryIndex = 0;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: Text(
+                          '나의 참여',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _selectedHistoryIndex == 0
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      if (_selectedHistoryIndex == 0)
+                        Container(
+                          height: 2,
+                          color: Color(0xFFB34FD1), // 보라색 선
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedHistoryIndex = 1;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: Text(
+                          '나의 모구',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _selectedHistoryIndex == 1
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      if (_selectedHistoryIndex == 1)
+                        Container(
+                          height: 2,
+                          color: Color(0xFFB34FD1), // 보라색 선
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: _selectedHistoryIndex == 0
+                ? Center(child: Text('나의 참여 내용'))
+                : Center(child: Text('나의 모구 내용')),
+          ),
+        ],
+      ),
       SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -172,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                     MenuPage(),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(-1.0, 0.0); // 왼쪽에서 시작
+                  const begin = Offset(-1.0, 0.0);
                   const end = Offset.zero;
                   const curve = Curves.ease;
 
