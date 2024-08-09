@@ -8,10 +8,10 @@ class MenuPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.reorder),
+          icon: Icon(Icons.arrow_back), // 뒤로 가기 아이콘으로 변경
           color: Color(0xFFFFE9F8),
           onPressed: () {
-            // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
+            Navigator.pop(context); // 뒤로 가기 동작을 정의
           },
         ),
         flexibleSpace: Container(
@@ -23,63 +23,9 @@ class MenuPage extends StatelessWidget {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            color: Color(0xFFFFE9F8),
-            onPressed: () {
-              // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications),
-            color: Color(0xFFFFE9F8),
-            onPressed: () {
-              // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
-            },
-          ),
-        ],
       ),
       body: Center(
         child: Text('Main Content'),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildNavItem(Icons.home, '홈', true),
-              _buildNavItem(Icons.chat, '채팅', false),
-              _buildNavItem(Icons.history, '모구내역', false),
-              _buildNavItem(Icons.person, 'MY', false),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Color(0xFFB34FD1) : Color(0xFFFFBDE9),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Color(0xFFB34FD1) : Color(0xFFFFBDE9),
-              fontSize: 9,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

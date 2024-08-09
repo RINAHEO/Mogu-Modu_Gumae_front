@@ -8,8 +8,8 @@ class SettingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.close),
-          color: Color(0xFFFFE9F8),
+          icon: Icon(Icons.arrow_back),
+          color: Color(0xFFFFD3F0),
           onPressed: () {
             // 닫기 버튼 클릭 시 동작을 정의하세요.
             Navigator.pop(context); // 이전 페이지로 돌아가기
@@ -18,7 +18,7 @@ class SettingPage extends StatelessWidget {
         title: Text(
           '환경설정',
           style: TextStyle(
-            color: Color(0xFFFFE9F8),
+            color: Color(0xFFFFD3F0),
             fontSize: 18,
             fontFamily: 'Inter',
             fontWeight: FontWeight.w600,
