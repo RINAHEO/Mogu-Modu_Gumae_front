@@ -5,6 +5,7 @@ import 'package:mogu_app/user/home/post/post_create_page.dart';
 import 'package:mogu_app/user/home/search_page.dart';
 
 import '../myPage/setting_page.dart';
+import '../myPage/update_profile_page.dart';
 import 'menu_page.dart';
 import 'notification_page.dart';
 
@@ -59,16 +60,103 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // 각 탭에서 표시할 위젯들을 정의
-  static final List<Widget> _widgetOptions = <Widget>[
-    Center(child: Text('홈 화면')),
-    Center(child: Text('채팅 화면')),
-    Center(child: Text('모구내역 화면')),
-    Center(child: Text('MY 화면')),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    List<Widget> widgetOptions = <Widget>[
+      Center(child: Text('홈 화면')),
+      Center(child: Text('채팅 화면')),
+      Center(child: Text('모구내역 화면')),
+      SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 20),
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey.shade300,
+                child: Icon(Icons.person, size: 50, color: Colors.white),
+              ),
+              SizedBox(height: 10),
+              Text(
+                '모비짱',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '서울시 서대문구 남가좌동',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateProfilePage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                child: Text('프로필 수정하기'),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: const [
+                  Column(
+                    children: [
+                      Text('레벨', style: TextStyle(fontSize: 16)),
+                      SizedBox(height: 10),
+                      Text('10회', style: TextStyle(fontSize: 18, color: Colors.purple)),
+                      SizedBox(height: 10),
+                      Text('20회', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text('매너도', style: TextStyle(fontSize: 16)),
+                      SizedBox(height: 10),
+                      Icon(Icons.favorite, color: Colors.pink),
+                      Text('9.5', style: TextStyle(fontSize: 18, color: Colors.purple)),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('나의 위치'),
+                subtitle: Text('서울시 서대문구 남가좌동'),
+              ),
+              ListTile(
+                leading: Icon(Icons.calendar_today),
+                title: Text('가입일'),
+                subtitle: Text('2024/01/20'),
+              ),
+              ListTile(
+                leading: Icon(Icons.money),
+                title: Text('모구로 아낌비용'),
+                subtitle: Text(
+                  '25,600원',
+                  style: TextStyle(fontSize: 20, color: Colors.pink),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         leading: _selectedIndex == 0
@@ -114,7 +202,7 @@ class _HomePageState extends State<HomePage> {
             gradient: LinearGradient(
               begin: Alignment(0.68, -0.73),
               end: Alignment(-0.68, 0.73),
-              colors: [Color(0xFFFFA7E1), Color(0xB29322CC)],
+              colors: const [Color(0xFFFFA7E1), Color(0xB29322CC)],
             ),
           ),
         ),
@@ -159,12 +247,14 @@ class _HomePageState extends State<HomePage> {
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         NotificationPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;
                       const curve = Curves.ease;
 
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
 
                       return SlideTransition(
                         position: animation.drive(tween),
@@ -174,29 +264,47 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               } else {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        SettingPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.ease;
-
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-                      return SlideTransition(
-                        position: animation.drive(tween),
-                        child: child,
-                      );
-                    },
-                  ),
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Container(
+                      padding: EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            title: Text('계정관리'),
+                            onTap: () {
+                              // 계정관리 페이지로 이동
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            title: Text('환경설정'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SettingPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            title: Text('취소'),
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               }
             },
-          )
-          ,
+          ),
         ],
       ),
       body: Column(
@@ -204,12 +312,12 @@ class _HomePageState extends State<HomePage> {
           if (_selectedIndex == 0 && _isAdLoaded) // 홈 화면일 때만 배너 광고 표시
             Container(
               alignment: Alignment.center,
-              child: AdWidget(ad: _bannerAd!),
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
             ),
           Expanded(
-            child: _widgetOptions[_selectedIndex], // 선택된 탭에 따라 다른 화면을 보여줌
+            child: widgetOptions[_selectedIndex], // 선택된 탭에 따라 다른 화면을 보여줌
           ),
         ],
       ),
@@ -274,7 +382,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => PostCreatePage()), // PostCreatePage로 이동
+                  builder: (context) => PostCreatePage(),
+                ), // PostCreatePage로 이동
               );
             },
             child: SizedBox(
@@ -297,7 +406,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
 
 
