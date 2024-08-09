@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-class NotificationPage extends StatelessWidget {
+class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
+
+  @override
+  _NotificationPageState createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
+  int _selectedTabIndex = 0; // 0: 참여알림, 1: 새소식
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +40,80 @@ class NotificationPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Text('Main Content'),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedTabIndex = 0;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Text(
+                          '참여알림',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _selectedTabIndex == 0
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      if (_selectedTabIndex == 0)
+                        Container(
+                          height: 2,
+                          color: Color(0xFFB34FD1), // 보라색 선
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedTabIndex = 1;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: Text(
+                          '새소식',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _selectedTabIndex == 1
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      if (_selectedTabIndex == 1)
+                        Container(
+                          height: 2,
+                          color: Color(0xFFB34FD1), // 보라색 선
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: _selectedTabIndex == 0
+                ? Center(child: Text('참여알림 내용'))
+                : Center(child: Text('새소식 내용')),
+          ),
+        ],
       ),
     );
   }
