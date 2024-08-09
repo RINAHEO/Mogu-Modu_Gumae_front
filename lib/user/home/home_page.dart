@@ -17,16 +17,24 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
   int _selectedIndex = 0;
-  int _selectedHistoryIndex = 0;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _loadBannerAd();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _loadBannerAd() {
@@ -50,12 +58,6 @@ class _HomePageState extends State<HomePage> {
     _bannerAd!.load();
   }
 
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -67,81 +69,7 @@ class _HomePageState extends State<HomePage> {
     List<Widget> widgetOptions = <Widget>[
       Center(child: Text('홈 화면')),
       Center(child: Text('채팅 화면')),
-      Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedHistoryIndex = 0;
-                    });
-                  },
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                        child: Text(
-                          '나의 참여',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _selectedHistoryIndex == 0
-                                ? Colors.black
-                                : Colors.grey,
-                          ),
-                        ),
-                      ),
-                      if (_selectedHistoryIndex == 0)
-                        Container(
-                          height: 2,
-                          color: Color(0xFFB34FD1), // 보라색 선
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedHistoryIndex = 1;
-                    });
-                  },
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                        child: Text(
-                          '나의 모구',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _selectedHistoryIndex == 1
-                                ? Colors.black
-                                : Colors.grey,
-                          ),
-                        ),
-                      ),
-                      if (_selectedHistoryIndex == 1)
-                        Container(
-                          height: 2,
-                          color: Color(0xFFB34FD1), // 보라색 선
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: _selectedHistoryIndex == 0
-                ? Center(child: Text('나의 참여 내용'))
-                : Center(child: Text('나의 모구 내용')),
-          ),
-        ],
-      ),
+      Center(child: Text('모구내역 화면')),
       SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -245,8 +173,7 @@ class _HomePageState extends State<HomePage> {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     MenuPage(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
                   const begin = Offset(-1.0, 0.0);
                   const end = Offset.zero;
                   const curve = Curves.ease;
@@ -282,6 +209,30 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+        bottom: _selectedIndex == 2
+            ? PreferredSize(
+          preferredSize: Size.fromHeight(48.0),
+          child: Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Color(0xFFB34FD1),
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Color(0xFFB34FD1),
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: UnderlineTabIndicator(
+                borderSide: BorderSide(color: Color(0xFFB34FD1), width: 3),
+                insets: EdgeInsets.symmetric(horizontal: 0.0), // 탭 아래의 선을 넓게 설정
+              ),
+              tabs: const [
+                Tab(text: '나의 참여'),
+                Tab(text: '나의 모구'),
+              ],
+            ),
+          ),
+        )
+            : null,
         actions: [
           if (_selectedIndex == 0) // 홈 화면일 때만 검색 버튼을 표시
             IconButton(
@@ -293,8 +244,7 @@ class _HomePageState extends State<HomePage> {
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         SearchPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation,
-                        child) {
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
                       const end = Offset.zero;
                       const curve = Curves.ease;
@@ -323,8 +273,7 @@ class _HomePageState extends State<HomePage> {
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         NotificationPage(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;
                       const curve = Curves.ease;
@@ -388,7 +337,15 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Column(
+      body: _selectedIndex == 2
+          ? TabBarView(
+        controller: _tabController,
+        children: const [
+          Center(child: Text('나의 참여 내용')),
+          Center(child: Text('나의 모구 내용')),
+        ],
+      )
+          : Column(
         children: <Widget>[
           if (_selectedIndex == 0 && _isAdLoaded) // 홈 화면일 때만 배너 광고 표시
             Container(
@@ -487,5 +444,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
 
 
