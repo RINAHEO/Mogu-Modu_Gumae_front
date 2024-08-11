@@ -42,6 +42,7 @@ flutter:
   - assets/icons/unselected_chat.svg
   - assets/icons/unselected_history.svg
   - assets/icons/unselected_my_page.svg
+  - assets/icons/search_filter.svg
 
 flutter_native_splash:
     image: assets/Mogulogo.png

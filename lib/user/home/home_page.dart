@@ -23,6 +23,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _selectedIndex = 0;
   late TabController _tabController;
 
+  String _selectedSortOption = '최신순';
+  final List<String> _sortOptions = ['최신순', '가까운 순'];
+  double _currentDistanceValue = 2.0; // 초기 거리 값 설정
+
+  // 상태 관리용 변수 추가
+  String _selectedRecruitmentStatus = '모집중';
+  String _selectedPurchaseRoute = '오프라인';
+  String _selectedPurchaseStatus = '미구입';
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +71,198 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _onSortOptionChanged(String? newValue) {
+    setState(() {
+      _selectedSortOption = newValue!;
+    });
+  }
+
+  void _showSearchOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // 전체 높이 제어
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '검색 옵션',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Text('나와의 거리'),
+                  Slider(
+                    value: _currentDistanceValue,
+                    min: 0,
+                    max: 10, // 최대 거리를 10km로 설정 (원하는 값으로 변경 가능)
+                    divisions: 10,
+                    label: '${_currentDistanceValue.toStringAsFixed(1)} km',
+                    onChanged: (value) {
+                      setModalState(() {
+                        _currentDistanceValue = value;
+                      });
+                    },
+                    activeColor: Color(0xFFB34FD1),
+                    inactiveColor: Colors.grey,
+                  ),
+                  Text(
+                    '~ ${_currentDistanceValue.toStringAsFixed(1)}km', // 현재 거리 값을 실시간으로 표시
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  SizedBox(height: 16),
+                  _buildToggleButton(
+                    '모집 상태',
+                    '모집중',
+                    '마감',
+                    _selectedRecruitmentStatus,
+                        (newValue) {
+                      setModalState(() {
+                        _selectedRecruitmentStatus = newValue;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  _buildToggleButton(
+                    '구매 경로',
+                    '오프라인',
+                    '온라인',
+                    _selectedPurchaseRoute,
+                        (newValue) {
+                      setModalState(() {
+                        _selectedPurchaseRoute = newValue;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  _buildToggleButton(
+                    '구매 상태',
+                    '미구입',
+                    '구입완료',
+                    _selectedPurchaseStatus,
+                        (newValue) {
+                      setModalState(() {
+                        _selectedPurchaseStatus = newValue;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('초기화'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey,
+                          backgroundColor: Colors.grey.shade200,
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10), // 초기화 버튼과 적용하기 버튼 사이의 간격
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text('적용하기'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Color(0xFFB34FD1),
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildToggleButton(String label, String option1, String option2,
+      String selectedValue, ValueChanged<String> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  onChanged(option1);
+                },
+                child: Text(option1),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: selectedValue == option1 ? Colors.white : Colors.grey,
+                  backgroundColor: selectedValue == option1 ? Color(0xFFB34FD1) : Colors.grey.shade200,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomLeft: Radius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  onChanged(option2);
+                },
+                child: Text(option2),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: selectedValue == option2 ? Colors.white : Colors.grey,
+                  backgroundColor: selectedValue == option2 ? Color(0xFFB34FD1) : Colors.grey.shade200,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -354,6 +555,36 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               height: _bannerAd!.size.height.toDouble(),
               child: AdWidget(ad: _bannerAd!),
             ),
+          if (_selectedIndex == 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 왼쪽과 오른쪽에 요소 배치
+                children: [
+                  IconButton(
+                    icon: SvgPicture.asset(
+                        "assets/icons/search_filter.svg"
+                    ),
+                    onPressed: () {
+                      _showSearchOptions(context); // 검색 옵션 모달 창을 띄움
+                    },
+                  ),
+                  DropdownButton<String>(
+                    value: _selectedSortOption,
+                    items: _sortOptions
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value, style: TextStyle(color: Color(0xFFB34FD1)),),
+                      );
+                    }).toList(),
+                    onChanged: _onSortOptionChanged,
+                    iconEnabledColor: Color(0xFFB34FD1),
+                    underline: SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: widgetOptions[_selectedIndex], // 선택된 탭에 따라 다른 화면을 보여줌
           ),
@@ -444,6 +675,3 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
-
-
-

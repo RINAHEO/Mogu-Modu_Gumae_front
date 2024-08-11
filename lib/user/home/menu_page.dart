@@ -24,9 +24,119 @@ class MenuPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Text('Main Content'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '카테고리',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            GridView.count(
+              crossAxisCount: 4, // 한 줄에 4개의 아이콘
+              shrinkWrap: true,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _buildCategoryItem(Icons.fastfood, '식료품'),
+                _buildCategoryItem(Icons.local_drink, '일회용품'),
+                _buildCategoryItem(Icons.cleaning_services, '청소용품'),
+                _buildCategoryItem(Icons.brush, '뷰티/미용'),
+                _buildCategoryItem(Icons.videogame_asset, '취미/게임'),
+                _buildCategoryItem(Icons.kitchen, '생활/주방'),
+                _buildCategoryItem(Icons.baby_changing_station, '육아용품'),
+                _buildCategoryItem(Icons.card_giftcard, '기타'),
+                _buildCategoryItem(Icons.card_giftcard, '무료 나눔'),
+              ],
+            ),
+            SizedBox(height: 16), // 고객센터와 무료나눔 사이의 간격 조정
+            Text(
+              '고객센터',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                _buildSupportItem(Icons.campaign, '공지사항'),
+                SizedBox(width: 16),
+                _buildSupportItem(Icons.help_outline, '문의'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem(IconData iconData, String label) {
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: Color(0xFFEDEDED),
+              shape: BoxShape.circle,
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(32),
+              splashColor: Colors.purple.withOpacity(0.2),
+              onTap: () {
+                print('$label 클릭됨');
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Icon(
+                  iconData,
+                  color: Color(0xFFB34FD1),
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSupportItem(IconData iconData, String label) {
+    return InkWell(
+      onTap: () {
+        // 여기에 아이콘 클릭 시 동작할 코드 작성
+        print('$label 클릭됨');
+      },
+      borderRadius: BorderRadius.circular(32), // 물결 효과가 텍스트를 감싸도록 경계 설정
+      splashColor: Colors.purple.withOpacity(0.2),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Icon(
+              iconData,
+              color: Colors.orange,
+            ),
+            SizedBox(width: 8),
+            Text(label),
+          ],
+        ),
       ),
     );
   }
 }
+
+

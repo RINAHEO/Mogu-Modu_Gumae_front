@@ -81,6 +81,12 @@ class _PostCreatePageState extends State<PostCreatePage> {
       Permission.location,
     ].request();
 
+    statuses.forEach((permission, status) {
+      if (status.isPermanentlyDenied) {
+        print('${permission.toString()} 권한이 영구적으로 거부되었습니다.');
+      }
+    });
+
     if (statuses.values.every((status) => status.isDenied)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('모든 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.'),
