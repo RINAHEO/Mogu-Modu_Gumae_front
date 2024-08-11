@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mogu_app/user/home/post/report/post_report_page.dart';
 
 class PostDetailPage extends StatefulWidget {
   const PostDetailPage({super.key});
@@ -22,6 +23,48 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void _onParticipateRequest() {
     // 참여요청 버튼 눌렀을 때 동작을 여기에 정의합니다.
     print('참여요청 버튼 눌림');
+  }
+
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('게시글 신고하기'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PostReportPage()),
+                  );
+                },
+              ),
+              ListTile(
+                title: Text('게시글 숨기기'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // 게시글 숨기기 동작 추가
+                },
+              ),
+              ListTile(
+                title: Text('취소'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -48,7 +91,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
           IconButton(
             icon: Icon(Icons.more_vert),
             onPressed: () {
-              // 이 버튼을 눌렀을 때 실행될 동작을 정의하세요.
+              _showBottomSheet(context);
             },
             color: Color(0xFFFFD3F0),
           ),
