@@ -102,18 +102,9 @@ class _SearchPageState extends State<SearchPage> {
             Wrap(
               spacing: 8.0,
               children: [
-                Chip(
-                  label: Text('계란'),
-                  backgroundColor: Colors.grey.shade200,
-                ),
-                Chip(
-                  label: Text('물티슈'),
-                  backgroundColor: Colors.grey.shade200,
-                ),
-                Chip(
-                  label: Text('도떼기시장'),
-                  backgroundColor: Colors.grey.shade200,
-                ),
+                _buildSearchChip('계란'),
+                _buildSearchChip('물티슈'),
+                _buildSearchChip('도떼기시장'),
               ],
             ),
             SizedBox(height: 16),
@@ -164,6 +155,27 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  Widget _buildSearchChip(String label) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          print('$label 클릭됨');
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Chip(
+            label: Text(label),
+            backgroundColor: Colors.grey.shade200,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductCard(
       BuildContext context,
       String userName,
@@ -175,97 +187,106 @@ class _SearchPageState extends State<SearchPage> {
       String likes,
       String views,
       ) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          print('$title 클릭됨');
+        },
         borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-                SizedBox(width: 8),
-                Text(userName, style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(width: 4),
-                Text(distance, style: TextStyle(color: Colors.grey)),
-              ],
-            ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                Row(
                   children: [
-                    Container(
-                      color: Colors.grey.shade300,
-                      width: 70,
-                      height: 70,
-                      child: Icon(Icons.image, size: 50, color: Colors.grey),
+                    CircleAvatar(
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, color: Colors.white),
                     ),
-                    SizedBox(height: 8),
-                    Row(
+                    SizedBox(width: 8),
+                    Text(userName, style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(width: 4),
+                    Text(distance, style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Icon(Icons.favorite_border, color: Colors.purple, size: 16),
-                        SizedBox(width: 4),
-                        Text(likes, style: TextStyle(color: Colors.purple)),
-                        SizedBox(width: 16),
-                        Icon(Icons.visibility, color: Colors.purple, size: 16),
-                        SizedBox(width: 4),
-                        Text(views, style: TextStyle(color: Colors.purple)),
+                        Container(
+                          color: Colors.grey.shade300,
+                          width: 70,
+                          height: 70,
+                          child: Icon(Icons.image, size: 50, color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.favorite_border, color: Colors.purple, size: 16),
+                            SizedBox(width: 4),
+                            Text(likes, style: TextStyle(color: Colors.purple)),
+                            SizedBox(width: 16),
+                            Icon(Icons.visibility, color: Colors.purple, size: 16),
+                            SizedBox(width: 4),
+                            Text(views, style: TextStyle(color: Colors.purple)),
+                          ],
+                        ),
                       ],
                     ),
                   ],
                 ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFFFBDE9),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text('모구', style: TextStyle(color: Colors.white)),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      price,
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+                    ),
+                    Spacer(),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFB34FD1),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(discount, style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(mogooPeople, style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
               ],
             ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFFBDE9),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text('모구', style: TextStyle(color: Colors.white)),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  price,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
-                ),
-                Spacer(),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFB34FD1),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(discount, style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Text(mogooPeople, style: TextStyle(color: Colors.grey)),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
