@@ -31,6 +31,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String _selectedRecruitmentStatus = '모집중';
   String _selectedPurchaseRoute = '오프라인';
   String _selectedPurchaseStatus = '미구입';
+  String _selectedChatFilter = '전체';
+
+  final List<Map<String, String>> chatItems = List.generate(
+    6,
+        (index) => {
+      'title': '그럼 명지대학교에서 뵙겠습니다',
+      'time': '오후 9시 13분',
+      'image': 'assets/images/sample_image.png', // 이미지 경로
+    },
+  );
 
   @override
   void initState() {
@@ -176,7 +186,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     children: [
                       TextButton(
                         onPressed: () {},
-                        child: Text('초기화'),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.grey,
                           backgroundColor: Colors.grey.shade200,
@@ -185,12 +194,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        child: Text('초기화'),
                       ),
                       SizedBox(width: 10), // 초기화 버튼과 적용하기 버튼 사이의 간격
                       Expanded(
                         child: TextButton(
                           onPressed: () {},
-                          child: Text('적용하기'),
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Color(0xFFB34FD1),
@@ -199,6 +208,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
+                          child: Text('적용하기'),
                         ),
                       ),
                     ],
@@ -226,7 +236,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 onPressed: () {
                   onChanged(option1);
                 },
-                child: Text(option1),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: selectedValue == option1 ? Colors.white : Colors.grey,
                   backgroundColor: selectedValue == option1 ? Color(0xFFB34FD1) : Colors.grey.shade200,
@@ -238,6 +247,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ),
                   ),
                 ),
+                child: Text(option1),
               ),
             ),
             Expanded(
@@ -245,7 +255,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 onPressed: () {
                   onChanged(option2);
                 },
-                child: Text(option2),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: selectedValue == option2 ? Colors.white : Colors.grey,
                   backgroundColor: selectedValue == option2 ? Color(0xFFB34FD1) : Colors.grey.shade200,
@@ -257,6 +266,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ),
                   ),
                 ),
+                child: Text(option2),
               ),
             ),
           ],
@@ -265,11 +275,100 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildChatFilterButton(String label) {
+    return OutlinedButton(
+      onPressed: () {
+        setState(() {
+          _selectedChatFilter = label;
+        });
+      },
+      style: OutlinedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        backgroundColor:
+        _selectedChatFilter == label ? Colors.grey.shade200 : Colors.white,
+        side: BorderSide(
+          color: _selectedChatFilter == label ? Colors.black : Colors.grey,
+        ),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 14)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> widgetOptions = <Widget>[
       Center(child: Text('홈 화면')),
-      Center(child: Text('채팅 화면')),
+      Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildChatFilterButton('전체'),
+                SizedBox(width: 8),
+                _buildChatFilterButton('판매'),
+                SizedBox(width: 8),
+                _buildChatFilterButton('구매'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: chatItems.length,
+              itemBuilder: (context, index) {
+                final chat = chatItems[index];
+                return ListTile(
+                  leading: Icon(
+                    Icons.image, // 임시로 사용할 아이콘
+                    size: 50, // 아이콘 크기
+                    color: Colors.grey, // 아이콘 색상
+                  ),
+                  title: Text(chat['title']!),
+                  subtitle: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: const [
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundColor: Colors.grey,
+                            child: Icon(
+                              Icons.person,
+                              size: 10,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Positioned(
+                            left: 8, // 겹치는 정도 조절, 이 값이 NaN이 아님을 확인
+                            child: CircleAvatar(
+                              radius: 10,
+                              backgroundColor: Colors.grey,
+                              child: Icon(
+                                Icons.person,
+                                size: 10,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      Text(chat['time']!),
+                    ],
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    // 채팅 클릭 시 동작
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
       Center(child: Text('모구내역 화면')),
       SingleChildScrollView(
         child: Padding(
