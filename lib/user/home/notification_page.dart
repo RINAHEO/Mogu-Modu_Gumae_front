@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mogu_app/user/home/post/post_ask_review_page.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -75,7 +76,7 @@ class _NotificationPageState extends State<NotificationPage>
                 borderSide: BorderSide(color: Color(0xFFB34FD1), width: 3),
                 insets: EdgeInsets.symmetric(horizontal: 0.0), // 탭 아래의 선을 넓게 설정
               ),
-              tabs: [
+              tabs: const [
                 Tab(text: '참여알림'),
                 Tab(text: '새소식'),
               ],
@@ -96,7 +97,26 @@ class _NotificationPageState extends State<NotificationPage>
             itemBuilder: (context, index) {
               return InkWell(
                 onTap: () {
-                  // 알림 항목 클릭 시 동작 추가
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          PostAskReviewPage(),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+                        const end = Offset.zero;
+                        const curve = Curves.ease;
+
+                        var tween = Tween(begin: begin, end: end)
+                            .chain(CurveTween(curve: curve));
+
+                        return SlideTransition(
+                          position: animation.drive(tween),
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
                 },
                 child: ListTile(
                   leading: Container(

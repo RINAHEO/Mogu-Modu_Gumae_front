@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mogu_app/user/chat/chat_room_page.dart';
 import 'package:mogu_app/user/home/post/post_create_page.dart';
 import 'package:mogu_app/user/home/search_page.dart';
 import 'package:mogu_app/user/myPage/account_management_page.dart';
+import 'package:mogu_app/user/home/post/post_detail_page.dart';
 
 import '../myPage/setting_page.dart';
 import '../myPage/update_profile_page.dart';
@@ -33,12 +35,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String _selectedPurchaseStatus = '미구입';
   String _selectedChatFilter = '전체';
 
+  // 홈 화면의 게시글 데이터
+  final List<Map<String, dynamic>> posts = [
+    {
+      'username': '김찬',
+      'distance': '1~2km',
+      'title': '방금 구매한 계란 5개씩 나누실분...',
+      'price': '2000원',
+      'participants': 2,
+      'maxParticipants': 3,
+      'likes': 7,
+      'comments': 23,
+    },
+    {
+      'username': '나혜리',
+      'distance': '500m 미만',
+      'title': '~~~원치에 물티슈 10개에 6000원 원하시는분',
+      'price': '2000원',
+      'participants': 2,
+      'maxParticipants': 3,
+      'likes': 7,
+      'comments': 23,
+    },
+    // 다른 게시글들...
+  ];
+
+  // 채팅 목록 데이터
   final List<Map<String, String>> chatItems = List.generate(
     6,
         (index) => {
       'title': '그럼 명지대학교에서 뵙겠습니다',
       'time': '오후 9시 13분',
-      'image': 'assets/images/sample_image.png', // 이미지 경로
     },
   );
 
@@ -294,10 +321,112 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildPostCard(Map<String, dynamic> post) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                PostDetailPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+              const end = Offset.zero;
+              const curve = Curves.ease;
+
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: curve));
+
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      splashColor: Colors.purple.withOpacity(0.2),
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${post['username']} • ${post['distance']}'),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.image, size: 50, color: Colors.grey), // 임시 아이콘
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post['title'],
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(post['price'], style: TextStyle(color: Colors.purple)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: const [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.grey,
+                          ),
+                          Positioned(
+                            left: 12,
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 8),
+                      Text('${post['participants']}/${post['maxParticipants']}'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text('${post['likes']}'),
+                      Icon(Icons.thumb_up, size: 16, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text('${post['comments']}'),
+                      Icon(Icons.comment, size: 16, color: Colors.grey),
+                    ],
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> widgetOptions = <Widget>[
-      Center(child: Text('홈 화면')),
+      ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          return _buildPostCard(posts[index]);
+        },
+      ),
       Column(
         children: [
           Padding(
@@ -361,7 +490,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // 채팅 클릭 시 동작
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            ChatRoomPage(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          var tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
                   },
                 );
               },
@@ -774,3 +922,4 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
+
