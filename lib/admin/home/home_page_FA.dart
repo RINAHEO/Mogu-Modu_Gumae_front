@@ -13,6 +13,7 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
   TabController? _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _selectedSort = '';
 
   @override
   void initState() {
@@ -21,6 +22,7 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
     _tabController?.addListener(() {
       setState(() {}); // 탭 변경 시 상태 업데이트
     });
+    _selectedSort = _getInitialSortValue(); // 초기 정렬 값 설정
   }
 
   @override
@@ -34,6 +36,7 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
     setState(() {
       _selectedIndex = index;
       _searchQuery = ''; // 탭을 변경할 때 검색어 초기화
+      _selectedSort = _getInitialSortValue(); // 탭 변경 시 기본 정렬 옵션 설정
     });
   }
 
@@ -43,41 +46,97 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
     });
   }
 
-  List<Widget> _buildSearchResults() {
-    List<Widget> results = [];
+  String _getInitialSortValue() {
     if (_selectedIndex == 0) {
-      // 홈탭: 게시물 검색
-      results = [
-        Text('홈탭 검색 결과: $_searchQuery'),
-      ];
+      return '최신순';
     } else if (_selectedIndex == 1) {
-      // 회원관리탭: 유저 아이디 검색
-      results = [
-        Text('회원관리 검색 결과: $_searchQuery'),
-      ];
-    } else if (_selectedIndex == 2) {
-      if (_tabController?.index == 0) {
-        // 민원관리탭 문의: 문의 제목 검색
-        results = [
-          Text('문의 검색 결과: $_searchQuery'),
-        ];
-      } else if (_tabController?.index == 1) {
-        // 민원관리탭 신고: 신고 내용 검색
-        results = [
-          Text('신고 검색 결과: $_searchQuery'),
-        ];
-      } else if (_tabController?.index == 2) {
-        // 민원관리탭 공지: 공지 제목 검색
-        results = [
-          Text('공지 검색 결과: $_searchQuery'),
-        ];
-      }
+      return '신고 많은 순';
+    } else if (_selectedIndex == 2 && _tabController?.index == 1) {
+      return '신고 많은 순';
+    } else {
+      return '최신순';
     }
+  }
+
+  List<String> _getDropdownOptions() {
+    if (_selectedIndex == 0) {
+      // 홈 화면
+      return ['최신순', '조회수 높은순'];
+    } else if (_selectedIndex == 1) {
+      // 회원관리 화면
+      return ['신고 많은 순', '신고 적은 순'];
+    } else if (_selectedIndex == 2 && _tabController?.index == 1) {
+      // 민원관리의 신고 탭
+      return ['신고 많은 순', '최신순'];
+    } else {
+      // 기본값
+      return ['최신순'];
+    }
+  }
+
+  List<Widget> _buildSearchResults() {
+    // 홈 탭에서만 게시글을 표시합니다.
+    List<Map<String, String>> posts = [
+      {
+        'profileName': '김찬',
+        'distance': '1~2km',
+        'description': '방금 구매한 계란 5개씩 나눠실분..',
+        'price': '2000원',
+        'imagePath': 'icon',
+        'endDate': '12/12',
+        'views': '23',
+      },
+      {
+        'profileName': '나하리',
+        'distance': '500m 미만',
+        'description': '~~위치에 필터가 10개에 6000원 필요하신분 있습니다.',
+        'price': '2000원',
+        'imagePath': 'icon',
+        'endDate': '12/14',
+        'views': '30',
+      },
+      {
+        'profileName': '모비팡',
+        'distance': '500m ~1km',
+        'description': '손수 만든 인증기능 판매합니다',
+        'price': '2000원',
+        'imagePath': 'icon',
+        'endDate': '12/16',
+        'views': '45',
+      },
+    ];
+
+    // 검색어가 있으면 필터링
+    if (_searchQuery.isNotEmpty) {
+      posts = posts
+          .where((post) => post['description']!.contains(_searchQuery))
+          .toList();
+    }
+
+    // 필터링된 게시글을 위젯으로 변환
+    List<Widget> results = posts.map((post) {
+      return _buildPostCard(
+        profileName: post['profileName']!,
+        distance: post['distance']!,
+        description: post['description']!,
+        price: post['price']!,
+        imagePath: post['imagePath']!,
+        endDate: post['endDate']!,
+        views: post['views']!,
+      );
+    }).toList();
+
     return results;
   }
 
   @override
   Widget build(BuildContext context) {
+    // 드롭다운 값이 옵션 리스트에 포함되어 있는지 확인
+    final dropdownOptions = _getDropdownOptions();
+    if (!dropdownOptions.contains(_selectedSort)) {
+      _selectedSort = dropdownOptions.first;
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -157,23 +216,56 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
         )
             : null,
       ),
-      body: _selectedIndex == 2
-          ? Container(
-        color: Colors.white, // TabBarView 전체의 배경색을 설정
-        child: TabBarView(
-          controller: _tabController,
-          children: const [
-            Center(child: Text('문의 내용 표시')),
-            Center(child: Text('신고 내용 표시')),
-            Center(child: Text('공지 내용 표시')),
-          ],
-        ),
-      )
-          : Container(
-        color: Colors.white, // 기본 배경색 설정
-        child: ListView(
-          children: _buildSearchResults(),
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                width: 110, // 드롭다운의 고정된 너비를 설정
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedSort,
+                    items: dropdownOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              value,
+                              style: TextStyle(
+                                color: Color(0xFFB34FD1),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedSort = newValue!;
+                      });
+                    },
+                    style: TextStyle(color: Colors.purple), // 글자 색상
+                    dropdownColor: Colors.white, // 드롭다운 배경색
+                    icon: Icon(Icons.arrow_drop_down, color: Color(0xFFB34FD1)), // 기본 화살표 아이콘 추가
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _selectedIndex == 0
+                ? ListView(
+              padding: EdgeInsets.all(8),
+              children: _buildSearchResults(),
+            )
+                : _buildTabContent(),
+          ),
+        ],
       ),
       floatingActionButton: _selectedIndex == 2 && _tabController?.index == 2
           ? ClipOval(
@@ -257,5 +349,140 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
       ),
     );
   }
-}
 
+  Widget _buildTabContent() {
+    // 회원관리 및 민원관리에서 표시할 컨텐츠를 정의합니다.
+    if (_selectedIndex == 1) {
+      // 회원관리 탭
+      return Center(
+        child: Text('회원관리 탭 내용'),
+      );
+    } else if (_selectedIndex == 2) {
+      // 민원관리 탭
+      return TabBarView(
+        controller: _tabController,
+        children: [
+          Center(child: Text('문의 내용 표시')),
+          Center(child: Text('신고 내용 표시')),
+          Center(child: Text('공지 내용 표시')),
+        ],
+      );
+    } else {
+      return Container();
+    }
+  }
+
+  Widget _buildPostCard({
+    required String profileName,
+    required String distance,
+    required String description,
+    required String price,
+    required String imagePath,
+    required String endDate,
+    required String views,
+  }) {
+    return InkWell(
+      onTap: () {
+        print('$profileName 게시글 클릭됨');
+      },
+      splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    child: Icon(Icons.person), // 프로필 이미지를 여기에 추가할 수 있음
+                  ),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        profileName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        distance,
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Text(description, style: TextStyle(fontSize: 14)),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.pinkAccent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text('모구카', style: TextStyle(color: Colors.pink)),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    price,
+                    style: TextStyle(
+                      color: Colors.purple,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Spacer(),
+                  Column(
+                    children: [
+                      Icon(Icons.image, size: 56), // 임시 아이콘 사용
+                      SizedBox(height: 4),
+                      Text(
+                        '10% 더 싸요',
+                        style: TextStyle(color: Colors.purple, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: Colors.grey, size: 16),
+                  SizedBox(width: 4),
+                  Text(endDate, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Spacer(),
+                  Icon(Icons.comment, color: Colors.grey, size: 16),
+                  SizedBox(width: 4),
+                  Text('2/3', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  SizedBox(width: 8),
+                  Icon(Icons.remove_red_eye, color: Colors.grey, size: 16),
+                  SizedBox(width: 4),
+                  Text(views, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  SizedBox(width: 8),
+                  Icon(Icons.favorite_border, color: Colors.grey, size: 16),
+                  SizedBox(width: 4),
+                  Text('23', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
