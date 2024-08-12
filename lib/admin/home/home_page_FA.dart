@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../user/home/post/post_detail_page.dart';
+
 class HomePageFA extends StatefulWidget {
   const HomePageFA({super.key});
 
@@ -123,6 +125,57 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
         imagePath: post['imagePath']!,
         endDate: post['endDate']!,
         views: post['views']!,
+      );
+    }).toList();
+
+    return results;
+  }
+
+  List<Widget> _buildMemberList() {
+    // 회원관리 탭에서 표시할 회원 목록을 정의합니다.
+    List<Map<String, String>> members = [
+      {
+        'profileName': '김찬',
+        'phoneNumber': '010-1234-5678',
+        'email': '1234qwer@naver.com',
+        'address': '서울특별시 서대문구 거북골로 34-1 2층 302호',
+        'totalTrades': '12',
+        'reports': '1',
+      },
+      {
+        'profileName': '나하리',
+        'phoneNumber': '010-1234-5678',
+        'email': '1234qwer@naver.com',
+        'address': '서울특별시 서대문구 남가좌동',
+        'totalTrades': '12',
+        'reports': '1',
+      },
+      {
+        'profileName': '모비팡',
+        'phoneNumber': '010-1234-5678',
+        'email': '1234qwer@naver.com',
+        'address': '서울특별시 서대문구 남가좌동',
+        'totalTrades': '12',
+        'reports': '1',
+      },
+    ];
+
+    // 검색어가 있으면 필터링
+    if (_searchQuery.isNotEmpty) {
+      members = members
+          .where((member) => member['profileName']!.contains(_searchQuery))
+          .toList();
+    }
+
+    // 필터링된 회원 목록을 위젯으로 변환
+    List<Widget> results = members.map((member) {
+      return _buildMemberCard(
+        profileName: member['profileName']!,
+        phoneNumber: member['phoneNumber']!,
+        email: member['email']!,
+        address: member['address']!,
+        totalTrades: member['totalTrades']!,
+        reports: member['reports']!,
       );
     }).toList();
 
@@ -263,6 +316,11 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
               padding: EdgeInsets.all(8),
               children: _buildSearchResults(),
             )
+                : _selectedIndex == 1
+                ? ListView(
+              padding: EdgeInsets.all(8),
+              children: _buildMemberList(),
+            )
                 : _buildTabContent(),
           ),
         ],
@@ -384,6 +442,26 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
     return InkWell(
       onTap: () {
         print('$profileName 게시글 클릭됨');
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                PostDetailPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+              const end = Offset.zero;
+              const curve = Curves.ease;
+
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: curve));
+
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          ),
+        );
       },
       splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
       child: Card(
@@ -485,4 +563,90 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
       ),
     );
   }
+
+  Widget _buildMemberCard({
+    required String profileName,
+    required String phoneNumber,
+    required String email,
+    required String address,
+    required String totalTrades,
+    required String reports,
+  }) {
+    return InkWell(
+      onTap: () {
+        print('$profileName 회원 클릭됨');
+      },
+      splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    child: Icon(Icons.person), // 프로필 이미지를 여기에 추가할 수 있음
+                  ),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        profileName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Text('이름 : $profileName'),
+              Text('전화번호 : $phoneNumber'),
+              Text('이메일 : $email'),
+              Text('주소 : $address'),
+              Text('총 거래 횟수 : $totalTrades'),
+              Text(
+                '신고당한 횟수 : $reports',
+                style: TextStyle(color: Colors.red),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      print('메시지 전송 클릭됨');
+                    },
+                    child: Text(
+                      '메시지전송',
+                      style: TextStyle(color: Colors.purple),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      print('차단하기 클릭됨');
+                    },
+                    child: Text(
+                      '차단하기',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+
