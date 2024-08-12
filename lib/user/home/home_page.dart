@@ -418,6 +418,154 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildMoguHistoryCard() {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                PostDetailPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+              const end = Offset.zero;
+              const curve = Curves.ease;
+
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: curve));
+
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.image, size: 60, color: Colors.grey), // 임시 이미지 아이콘
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('명지대사거리 우리은행 앞'),
+                        Text(
+                          '방금 구매한 계란 5개씩 나누실 분...',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text('모구가 : 2000원'),
+                        Text('참여 인원 2/3\n모구 마감 12/32'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '**신청 상태 : 승인',
+                  style: TextStyle(color: Colors.purple),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyMoguCard() {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                PostDetailPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
+              const end = Offset.zero;
+              const curve = Curves.ease;
+
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: curve));
+
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Icon(Icons.image, size: 60, color: Colors.grey), // 임시 이미지 아이콘
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '방금 구매한 계란 5개씩 나누실 분...',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text('모구가 : 2000원'),
+                    Text('모구 마감: 2024/12/32'),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text('2/3'),
+                        SizedBox(width: 8),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.grey,
+                            ),
+                            Positioned(
+                              left: 12,
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> widgetOptions = <Widget>[
@@ -517,7 +665,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ],
       ),
-      Center(child: Text('모구내역 화면')),
+      TabBarView(
+        controller: _tabController,
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return _buildMoguHistoryCard();
+                  },
+                ),
+              ),
+            ],
+          ),
+          ListView.builder(
+            itemCount: 5,
+            itemBuilder: (context, index) {
+              return _buildMyMoguCard();
+            },
+          ),
+        ],
+      ),
       SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -788,9 +958,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       body: _selectedIndex == 2
           ? TabBarView(
         controller: _tabController,
-        children: const [
-          Center(child: Text('나의 참여 내용')),
-          Center(child: Text('나의 모구 내용')),
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return _buildMoguHistoryCard();
+                  },
+                ),
+              ),
+            ],
+          ),
+          ListView.builder(
+            itemCount: 5,
+            itemBuilder: (context, index) {
+              return _buildMyMoguCard();
+            },
+          ),
         ],
       )
           : Column(
@@ -922,4 +1108,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
+
+
 

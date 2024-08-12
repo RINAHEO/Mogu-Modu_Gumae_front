@@ -43,6 +43,10 @@ flutter:
   - assets/icons/unselected_history.svg
   - assets/icons/unselected_my_page.svg
   - assets/icons/search_filter.svg
+  - assets/icons/unselected_member_management.svg
+  - assets/icons/selected_member_management.svg
+  - assets/icons/selected_complaint_management.svg
+  - assets/icons/unselected_complaint_management.svg
 
 flutter_native_splash:
     image: assets/Mogulogo.png

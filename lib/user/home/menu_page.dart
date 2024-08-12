@@ -65,9 +65,9 @@ class MenuPage extends StatelessWidget {
             SizedBox(height: 16),
             Row(
               children: [
-                _buildSupportItem(Icons.campaign, '공지사항'),
+                _buildSupportItem(0,Icons.campaign, '공지사항'),
                 SizedBox(width: 16),
-                _buildSupportItem(Icons.help_outline, '문의'),
+                _buildSupportItem(1, Icons.help, '문의'),
               ],
             ),
           ],
@@ -114,7 +114,7 @@ class MenuPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportItem(IconData iconData, String label) {
+  Widget _buildSupportItem(int index, IconData iconData, String label) {
     return InkWell(
       onTap: () {
         // 여기에 아이콘 클릭 시 동작할 코드 작성
@@ -128,7 +128,7 @@ class MenuPage extends StatelessWidget {
           children: [
             Icon(
               iconData,
-              color: Colors.orange,
+              color: index == 0 ? Colors.red : Colors.blue, // 첫 번째는 빨간색, 두 번째는 파란색
             ),
             SizedBox(width: 8),
             Text(label),
