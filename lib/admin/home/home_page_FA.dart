@@ -574,7 +574,7 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
   }) {
     return InkWell(
       onTap: () {
-        print('$profileName 회원 클릭됨');
+        print('$profileName 카드 클릭됨');
       },
       splashColor: Colors.purple.withOpacity(0.3), // 물결 효과 색상
       child: Card(
@@ -632,7 +632,7 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
                   ),
                   TextButton(
                     onPressed: () {
-                      print('차단하기 클릭됨');
+                      _showBlockReasonDialog();
                     },
                     child: Text(
                       '차단하기',
@@ -647,6 +647,73 @@ class _HomePageFAState extends State<HomePageFA> with SingleTickerProviderStateM
       ),
     );
   }
+
+  void _showBlockReasonDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: EdgeInsets.only(top: 24),
+          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          title: Text(
+            '차단 사유를 입력해주세요',
+            style: TextStyle(fontSize: 14,
+              fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+          content: Container(
+            height: 100,
+            child: TextField(
+              maxLines: 4,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 7),
+                    backgroundColor: Colors.pink[50],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    '확인',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 7),
+                    backgroundColor: Colors.purple[100],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    '취소',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
-
-
