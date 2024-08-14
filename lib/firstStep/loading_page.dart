@@ -14,12 +14,7 @@ class _LoadingPageState extends State<LoadingPage> {
   void initState() {
     super.initState();
     _requestPermissions().then((_) {
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => FirstPage()),
-        );
-      });
+      _navigateToNextPage();  // 권한 요청 후 항상 다음 페이지로 이동
     });
   }
 
@@ -27,7 +22,6 @@ class _LoadingPageState extends State<LoadingPage> {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.photos,
       Permission.camera,
-      // Permission.storage,
       Permission.location,
     ].request();
 
@@ -38,7 +32,7 @@ class _LoadingPageState extends State<LoadingPage> {
     });
 
     if (statuses.values.every((status) => status.isDenied)) {
-      // 모든 권한이 거부된 경우
+      // 모든 권한이 거부된 경우에도 다음 페이지로 이동
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('모든 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.'),
@@ -65,12 +59,22 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
+  void _navigateToNextPage() {
+    // 2초 대기 후 다음 페이지로 이동
+    Future.delayed(Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => FirstPage()),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Container(
-        width: 360,
-        height: 770,
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment(0.71, -0.71),
@@ -92,4 +96,3 @@ class _LoadingPageState extends State<LoadingPage> {
     );
   }
 }
-

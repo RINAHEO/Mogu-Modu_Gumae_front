@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mogu_app/firstStep/login_page.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mogu_app/firstStep/login_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -21,6 +25,47 @@ class _SignUpPageState extends State<SignUpPage> {
 
   final _formKey = GlobalKey<FormState>();
   bool isVerificationFieldVisible = false;
+  NaverMapController? _mapController;
+  late NLatLng currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _initCurrentLocation();
+  }
+
+  Future<void> _initCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services are disabled.');
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('Location permissions are denied');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('Location permissions are permanently denied');
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      currentPosition = NLatLng(position.latitude, position.longitude);
+    });
+  }
 
   Future<void> postUser(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -45,55 +90,21 @@ class _SignUpPageState extends State<SignUpPage> {
             "nickname": nickname,
             "phone": phone,
             "role": "user",
-            "longitude": "-122.4194",
-            "latitude": "37.7749"
+            "longitude": currentPosition.longitude.toString(),
+            "latitude": currentPosition.latitude.toString()
           }),
         );
 
         if (response.statusCode == 201) {
-          print('공지 등록 성공');
+          print('회원가입 성공');
           _showSignUpSuccessDialog();
         } else {
-          print('공지 등록 실패: ${response.statusCode}');
-          // Show the error message to the user
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('오류'),
-                content: Text("제목, 내용을 채워 주세요."),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('확인'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
+          print('회원가입 실패: ${response.statusCode}');
+          _showErrorDialog('회원가입 실패', '서버에서 오류가 발생했습니다.');
         }
       } catch (e) {
-        print('공지 등록 오류: $e');
-        // Show a general error message to the user
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('오류'),
-              content: Text('서버와의 연결 오류가 발생했습니다.'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('확인'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
+        print('회원가입 오류: $e');
+        _showErrorDialog('오류', '서버와의 연결 오류가 발생했습니다.');
       }
     }
   }
@@ -109,30 +120,32 @@ class _SignUpPageState extends State<SignUpPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        LoginPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0); // 오른쪽에서 시작
-                      const end = Offset.zero;
-                      const curve = Curves.ease;
-
-                      var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-
-                      return SlideTransition(
-                        position: animation.drive(tween),
-                        child: child,
-                      );
-                    },
-                  ),
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               },
               child: Text('확인', style: TextStyle(color: Color(0xFFB34FD1))),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ],
         );
@@ -145,45 +158,12 @@ class _SignUpPageState extends State<SignUpPage> {
     final emailRegExp = RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
 
     if (email.isEmpty || !emailRegExp.hasMatch(email)) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('오류'),
-            content: Text('유효한 이메일 주소를 입력해주세요'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('확인'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog('오류', '유효한 이메일 주소를 입력해주세요');
     } else {
       setState(() {
         isVerificationFieldVisible = true;
       });
-      // 이메일 인증번호 발송 로직을 여기 추가하세요
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('인증번호 발송'),
-            content: Text('이메일 인증번호를 발송했습니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('확인'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog('인증번호 발송', '이메일 인증번호를 발송했습니다.');
       print('이메일 인증 로직 실행');
     }
   }
@@ -193,9 +173,91 @@ class _SignUpPageState extends State<SignUpPage> {
     print('인증번호 확인 로직 실행');
   }
 
-  void _onLocationIconPressed() {
-    // 로케이션 아이콘 클릭 시 실행될 로직을 여기에 추가하세요
-    print('로케이션 아이콘 클릭됨');
+  Future<void> _onLocationIconPressed() async {
+    final NLatLng? selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text('위치 선택'),
+          ),
+          body: NaverMap(
+            onMapReady: (controller) async {
+              _mapController = controller;
+              moveToLocation(_mapController!, currentPosition.latitude, currentPosition.longitude);
+              final marker = NMarker(id: 'currentPosition_marker', position: currentPosition);
+              final onMarkerInfoWindow = NInfoWindow.onMarker(id: 'currentPosition_marker_info', text: "내 위치");
+              _mapController!.addOverlay(marker);
+              marker.openInfoWindow(onMarkerInfoWindow);
+            },
+            onMapTapped: (point, latLng) {
+              Navigator.pop(context, latLng);
+            },
+            onSymbolTapped: (symbol){
+              Navigator.pop(context, symbol.position);
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (selectedLocation != null) {
+      String currentAddress = await getAddressFromCoordinates(selectedLocation.latitude, selectedLocation.longitude);
+      setState(() {
+        nicknameController.text = currentAddress;
+      });
+    }
+  }
+
+  void moveToLocation(NaverMapController controller, double latitude, double longitude) async {
+    NCameraUpdate cameraUpdate = NCameraUpdate.fromCameraPosition(
+        NCameraPosition(target: NLatLng(latitude, longitude), zoom: 15)
+    );
+    await controller.updateCamera(cameraUpdate);
+  }
+
+  double truncateCoordinate(double coord, {int precision = 3}) {
+    double mod = pow(10.0, precision).toDouble();
+    return ((coord * mod).round().toDouble() / mod);
+  }
+
+  Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
+    String apiKey = dotenv.env['VWORLD_API_KEY'] ?? 'API_KEY_NOT_FOUND';
+
+    latitude = truncateCoordinate(latitude, precision: 3);
+    longitude = truncateCoordinate(longitude, precision: 3);
+
+    String baseUrl =
+        'https://api.vworld.kr/req/address?service=address&request=getAddress&key=$apiKey&point=';
+
+    try {
+      for (int i = 0; i < 10; i++) {
+        String url = '$baseUrl$longitude,$latitude&type=ROAD';
+        print('Sending request to: $url');
+        final response = await http.get(Uri.parse(url));
+
+        if (response.statusCode == 200) {
+          var jsonResponse = json.decode(response.body);
+
+          if (jsonResponse['response'] != null && jsonResponse['response']['status'] == 'OK') {
+            var results = jsonResponse['response']['result'];
+            if (results != null && results.isNotEmpty) {
+              var address = results[0]['text'];
+              print('Address found: $address');
+              return address;
+            }
+          }
+        }
+
+        latitude += 0.001;
+        longitude += 0.001;
+      }
+
+      return '알 수 없는 위치';
+    } catch (e) {
+      print('Exception caught: $e');
+      return '네트워크 오류가 발생했습니다';
+    }
   }
 
   @override
@@ -205,7 +267,7 @@ class _SignUpPageState extends State<SignUpPage> {
         preferredSize: Size.fromHeight(60.0),
         child: AppBar(
           backgroundColor: Colors.white,
-          elevation: 0, // 그림자 제거
+          elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Color(0xFFB34FD1)),
             onPressed: () {
@@ -214,6 +276,7 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ),
       ),
+      backgroundColor: Colors.white,  // 배경색을 흰색으로 설정
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -259,9 +322,9 @@ class _SignUpPageState extends State<SignUpPage> {
               postUser(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFB34FD1), // 버튼 색상
+              backgroundColor: Color(0xFFB34FD1),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             child: Text(
@@ -289,12 +352,12 @@ class _SignUpPageState extends State<SignUpPage> {
         ElevatedButton(
           onPressed: _verifyEmail,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFB34FD1), // 버튼 색상
-            minimumSize: Size(150, 50), // 버튼 길이 설정
+            backgroundColor: Color(0xFFB34FD1),
+            minimumSize: Size(150, 50),
           ),
           child: Text(
             '이메일 인증하기',
-            style: TextStyle(color: Colors.white), // 하얀색 텍스트
+            style: TextStyle(color: Colors.white),
           ),
         ),
       ],
@@ -316,12 +379,12 @@ class _SignUpPageState extends State<SignUpPage> {
         ElevatedButton(
           onPressed: _confirmVerificationCode,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFB34FD1), // 버튼 색상
-            minimumSize: Size(150, 50), // 버튼 길이 설정
+            backgroundColor: Color(0xFFB34FD1),
+            minimumSize: Size(150, 50),
           ),
           child: Text(
             '인증번호 확인',
-            style: TextStyle(color: Colors.white), // 하얀색 텍스트
+            style: TextStyle(color: Colors.white),
           ),
         ),
       ],
@@ -372,16 +435,16 @@ class _SignUpPageState extends State<SignUpPage> {
           text: TextSpan(
             text: labelText,
             style: TextStyle(
-              color: Colors.grey[700], // 회색 빛 텍스트
+              color: Colors.grey[700],
               fontSize: 16,
-              fontWeight: FontWeight.w500, // 중간 굵기
+              fontWeight: FontWeight.w500,
             ),
             children: isRequired
                 ? [
               TextSpan(
                 text: ' *',
                 style: TextStyle(
-                  color: Color(0xFFB34FD1), // 보라색 별표
+                  color: Color(0xFFB34FD1),
                   fontSize: 16,
                 ),
               ),
@@ -427,7 +490,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 return '$labelText는 최대 12자까지 입력할 수 있습니다';
               }
             } else if (labelText == "핸드폰번호") {
-              if (value.length != 13) { // 하이픈 포함 13자
+              if (value.length != 13) {
                 return '핸드폰 번호는 11자리여야 합니다';
               }
               final phoneRegExp = RegExp(r'^\d{3}-\d{4}-\d{4}$');
