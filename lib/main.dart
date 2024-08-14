@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mogu_app/firstStep/loading_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  initialize();
+Future<void> main() async {
+  await initialize();
   runApp(const MoguApp());
 }
 
-void initialize(){
+Future<void> initialize() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   NaverMapSdk.instance.initialize(
-    clientId: '5976phb2xh',
+    clientId: dotenv.env['NAVER_API_KEY'] ?? 'API_KEY_NOT_FOUND',
   );
-  MobileAds.instance.initialize();
+  await MobileAds.instance.initialize();
 }
 
 class MoguApp extends StatelessWidget {
   const MoguApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,3 +28,4 @@ class MoguApp extends StatelessWidget {
     );
   }
 }
+

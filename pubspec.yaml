@@ -22,6 +22,7 @@ dependencies:
   permission_handler: ^11.3.1
   webview_flutter: ^4.0.0
   google_mobile_ads: ^2.0.0
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +48,7 @@ flutter:
   - assets/icons/selected_member_management.svg
   - assets/icons/selected_complaint_management.svg
   - assets/icons/unselected_complaint_management.svg
+  - .env
 
 flutter_native_splash:
     image: assets/Mogulogo.png

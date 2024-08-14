@@ -98,7 +98,7 @@ class NoticeCreatePage extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment(0.68, -0.73),
               end: Alignment(-0.68, 0.73),
-              colors: [Color(0xFFFFA7E1), Color(0xB29322CC)],
+              colors: const [Color(0xFFFFA7E1), Color(0xB29322CC)],
             ),
           ),
         ),
@@ -115,7 +115,7 @@ class NoticeCreatePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Color(0x142E1727),
                       blurRadius: 10,
@@ -195,7 +195,7 @@ class NoticeCreatePage extends StatelessWidget {
         padding: const EdgeInsets.all(9),
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Color(0x14737373),
               blurRadius: 4,

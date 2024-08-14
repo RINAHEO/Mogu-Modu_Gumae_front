@@ -6,9 +6,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PostCreatePage extends StatefulWidget {
   const PostCreatePage({super.key});
@@ -35,9 +35,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
     super.initState();
     priceController.addListener(_updatePrice);
     personController.addListener(_updatePerson);
-    _requestPermissions(context).then((_) {
-      _initCurrentLocation();
-    });
+    _initCurrentLocation();
   }
 
   Future<void> _initCurrentLocation() async {
@@ -71,61 +69,6 @@ class _PostCreatePageState extends State<PostCreatePage> {
     setState(() {
       currentPosition = NLatLng(position.latitude, position.longitude);
     });
-  }
-
-  Future<void> _requestPermissions(BuildContext context) async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.photos,
-      Permission.camera,
-      // Permission.storage,
-      Permission.location,
-    ].request();
-
-    statuses.forEach((permission, status) {
-      if (status.isPermanentlyDenied) {
-        print('${permission.toString()} 권한이 영구적으로 거부되었습니다.');
-      }
-    });
-
-    if (statuses.values.every((status) => status.isDenied)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('모든 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.'),
-          action: SnackBarAction(
-            label: '설정으로 이동',
-            onPressed: () {
-              openAppSettings();
-            },
-          ),
-        ),
-      );
-    } else if (statuses.values.every((status) => status.isGranted)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('모든 권한이 허용되었습니다. ')),
-      );
-    } else if (statuses.values.any((status) => status.isPermanentlyDenied)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('일부 권한이 영구적으로 거부되었습니다. 설정에서 권한을 허용해주세요.'),
-          action: SnackBarAction(
-            label: '설정으로 이동',
-            onPressed: () {
-              openAppSettings();
-            },
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('일부 권한이 허용되었습니다. 설정에서 권한을 허용해주세요.'),
-          action: SnackBarAction(
-            label: '설정으로 이동',
-            onPressed: () {
-              openAppSettings();
-            },
-          ),
-        ),
-      );
-    }
   }
 
   void _updatePrice() {
@@ -299,7 +242,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
   }
 
   Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
-    String apiKey = '92847C2D-0B70-3586-8343-66FF39FB047E';
+    String apiKey = dotenv.env['VWORLD_API_KEY'] ?? 'API_KEY_NOT_FOUND';
 
     latitude = truncateCoordinate(latitude, precision: 3);
     longitude = truncateCoordinate(longitude, precision: 3);
@@ -391,7 +334,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
             gradient: LinearGradient(
               begin: Alignment(0.68, -0.73),
               end: Alignment(-0.68, 0.73),
-              colors: [Color(0xFFFFA7E1), Color(0xB29322CC)],
+              colors: const [Color(0xFFFFA7E1), Color(0xB29322CC)],
             ),
           ),
         ),
@@ -511,7 +454,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
             padding: const EdgeInsets.only(top: 9, left: 11, right: 12, bottom: 9),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Color(0x14737373),
                   blurRadius: 4,
@@ -618,7 +561,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
             title,
             style: TextStyle(fontSize: 16),
           ),
-          Container(
+          SizedBox(
             width: 150,
             child: TextFormField(
               controller: controller,
@@ -651,7 +594,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
             title,
             style: TextStyle(fontSize: 16),
           ),
-          Container(
+          SizedBox(
             width: 150,
             child: TextFormField(
               controller: controller,
@@ -676,6 +619,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
     );
   }
 }
+
 
 
 
