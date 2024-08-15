@@ -16,6 +16,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController userIdController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController(); // 비밀번호 확인 필드 추가
   final TextEditingController nameController = TextEditingController();
   final TextEditingController nicknameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -39,18 +40,10 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _initCurrentLocation() async {
-    NLatLng currentPosition = await _locationService.initCurrentLocation();
+    await _locationService.initCurrentLocation();
   }
 
   Future<void> postUser(BuildContext context) async {
-    print(userIdController.text);
-    print(passwordController.text);
-    print(nameController.text);
-    print(nicknameController.text);
-    print(phoneController.text);
-    print(selectedLocation?.longitude.toString()); // 수정된 부분
-    print(selectedLocation?.latitude.toString());  // 수정된 부분
-
     if (_formKey.currentState?.validate() ?? false) {
       if (!isEmailVerified) {
         _showErrorDialog('오류', '이메일 인증을 완료해주세요.');
@@ -67,7 +60,6 @@ class _SignUpPageState extends State<SignUpPage> {
       String name = nameController.text;
       String nickname = nicknameController.text;
       String phone = phoneController.text.replaceAll('-', '');
-      String address = addressController.text;
 
       String url = 'http://10.0.2.2:8080/user'; // 안드로이드 에뮬레이터의 경우
 
@@ -84,20 +76,17 @@ class _SignUpPageState extends State<SignUpPage> {
             "nickname": nickname,
             "phone": phone,
             "role": "user",
-            "longitude": selectedLocation?.longitude.toString() ?? '', // 수정된 부분
-            "latitude": selectedLocation?.latitude.toString() ?? '',  // 수정된 부분
+            "longitude": selectedLocation?.longitude.toString() ?? '',
+            "latitude": selectedLocation?.latitude.toString() ?? '',
           }),
         );
 
         if (response.statusCode == 201) {
-          print('회원가입 성공');
           _showSignUpSuccessDialog();
         } else {
-          print('회원가입 실패: ${response.statusCode}');
           _showErrorDialog('회원가입 실패', '서버에서 오류가 발생했습니다.');
         }
       } catch (e) {
-        print('회원가입 오류: $e');
         _showErrorDialog('오류', '서버와의 연결 오류가 발생했습니다.');
       }
     }
@@ -113,6 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
           actions: [
             TextButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 Navigator.pushReplacement(
                   context,
@@ -158,7 +148,6 @@ class _SignUpPageState extends State<SignUpPage> {
         isVerificationFieldVisible = true;
       });
       _showErrorDialog('인증번호 발송', '이메일 인증번호를 발송했습니다.');
-      print('이메일 인증 로직 실행');
     }
   }
 
@@ -173,7 +162,6 @@ class _SignUpPageState extends State<SignUpPage> {
         isPhoneVerificationFieldVisible = true;
       });
       _showErrorDialog('인증번호 발송', '핸드폰 인증번호를 발송했습니다.');
-      print('핸드폰 인증 로직 실행');
     }
   }
 
@@ -182,7 +170,6 @@ class _SignUpPageState extends State<SignUpPage> {
       isEmailVerified = true;
     });
     _showErrorDialog('인증 성공', '이메일 인증이 완료되었습니다.');
-    print('인증번호 확인 로직 실행');
   }
 
   void _confirmPhoneVerificationCode() {
@@ -190,7 +177,6 @@ class _SignUpPageState extends State<SignUpPage> {
       isPhoneVerified = true;
     });
     _showErrorDialog('인증 성공', '핸드폰 인증이 완료되었습니다.');
-    print('핸드폰 인증번호 확인 로직 실행');
   }
 
   Future<void> _onLocationIconPressed() async {
@@ -200,7 +186,7 @@ class _SignUpPageState extends State<SignUpPage> {
       String currentAddress = await _locationService.getAddressFromCoordinates(
           selectedLocation!.latitude, selectedLocation!.longitude);
       setState(() {
-        addressController.text = currentAddress; // 주소 필드에 주소를 저장
+        addressController.text = currentAddress;
       });
     }
   }
@@ -245,8 +231,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildVerificationCodeField(),
                 ],
                 SizedBox(height: 16),
-                _buildTextFieldWithLabel(
-                    "패스워드", true, "패스워드를 입력하세요", passwordController),
+                _buildPasswordField(), // 비밀번호 입력 필드
+                SizedBox(height: 16),
+                _buildConfirmPasswordField(), // 비밀번호 확인 필드 추가
                 SizedBox(height: 16),
                 _buildTextFieldWithLabel("이름", true, "이름을 입력하세요", nameController),
                 SizedBox(height: 16),
@@ -342,6 +329,26 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  Widget _buildPasswordField() {
+    return _buildTextFieldWithLabel(
+        "패스워드", true, "패스워드를 입력하세요", passwordController,
+        obscureText: true);
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return _buildTextFieldWithLabel(
+        "패스워드 확인", true, "패스워드를 다시 입력하세요", confirmPasswordController,
+        obscureText: true, validator: (value) {
+      if (value == null || value.isEmpty) {
+        return '패스워드 확인을 입력해주세요';
+      }
+      if (value != passwordController.text) {
+        return '서로 다른 비밀번호가 입력되었습니다';
+      }
+      return null;
+    });
+  }
+
   Widget _buildPhoneNumberField() {
     return Row(
       children: [
@@ -425,6 +432,8 @@ class _SignUpPageState extends State<SignUpPage> {
         List<TextInputFormatter>? inputFormatters,
         Widget? suffixIcon,
         bool readOnly = false,
+        bool obscureText = false,
+        String? Function(String?)? validator,
       }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,6 +464,7 @@ class _SignUpPageState extends State<SignUpPage> {
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
+          obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey),
@@ -470,35 +480,36 @@ class _SignUpPageState extends State<SignUpPage> {
             suffixIcon: suffixIcon,
           ),
           readOnly: readOnly,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return '$labelText를 입력해주세요';
-            }
-            if (labelText == "아이디 (이메일주소)") {
-              final emailRegExp = RegExp(
-                  r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
-              if (!emailRegExp.hasMatch(value)) {
-                return '유효한 이메일 주소를 입력해주세요';
-              }
-            } else if (labelText == "패스워드") {
-              if (value.length < 8 || value.length > 16) {
-                return '패스워드는 8자에서 16자 사이여야 합니다';
-              }
-            } else if (labelText == "이름" || labelText == "닉네임") {
-              if (value.length > 12) {
-                return '$labelText는 최대 12자까지 입력할 수 있습니다';
-              }
-            } else if (labelText == "핸드폰번호") {
-              if (value.length != 13) {
-                return '핸드폰 번호는 11자리여야 합니다';
-              }
-              final phoneRegExp = RegExp(r'^\d{3}-\d{4}-\d{4}$');
-              if (!phoneRegExp.hasMatch(value)) {
-                return '유효한 핸드폰 번호를 입력해주세요';
-              }
-            }
-            return null;
-          },
+          validator: validator ??
+                  (value) {
+                if (value == null || value.isEmpty) {
+                  return '$labelText를 입력해주세요';
+                }
+                if (labelText == "아이디 (이메일주소)") {
+                  final emailRegExp = RegExp(
+                      r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                  if (!emailRegExp.hasMatch(value)) {
+                    return '유효한 이메일 주소를 입력해주세요';
+                  }
+                } else if (labelText == "패스워드") {
+                  if (value.length < 8 || value.length > 16) {
+                    return '패스워드는 8자에서 16자 사이여야 합니다';
+                  }
+                } else if (labelText == "이름" || labelText == "닉네임") {
+                  if (value.length > 12) {
+                    return '$labelText는 최대 12자까지 입력할 수 있습니다';
+                  }
+                } else if (labelText == "핸드폰번호") {
+                  if (value.length != 13) {
+                    return '핸드폰 번호는 11자리여야 합니다';
+                  }
+                  final phoneRegExp = RegExp(r'^\d{3}-\d{4}-\d{4}$');
+                  if (!phoneRegExp.hasMatch(value)) {
+                    return '유효한 핸드폰 번호를 입력해주세요';
+                  }
+                }
+                return null;
+              },
         ),
       ],
     );
