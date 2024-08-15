@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mogu_app/firstStep/login_page.dart';
+import 'package:mogu_app/service/location_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -24,15 +22,15 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController verificationCodeController = TextEditingController();
   final TextEditingController phoneVerificationCodeController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
-  late final NLatLng selectedLocation;
+  NLatLng? selectedLocation;
 
   final _formKey = GlobalKey<FormState>();
   bool isVerificationFieldVisible = false;
   bool isPhoneVerificationFieldVisible = false;
   bool isEmailVerified = false;
   bool isPhoneVerified = false;
-  NaverMapController? _mapController;
-  late NLatLng currentPosition;
+
+  final LocationService _locationService = LocationService(); // LocationService 인스턴스 생성
 
   @override
   void initState() {
@@ -41,48 +39,18 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _initCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      print('Location services are disabled.');
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        print('Location permissions are denied');
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      print('Location permissions are permanently denied');
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    setState(() {
-      currentPosition = NLatLng(position.latitude, position.longitude);
-    });
+    NLatLng currentPosition = await _locationService.initCurrentLocation();
+    // currentPosition을 사용하여 초기화할 다른 로직이 필요할 경우 추가
   }
 
   Future<void> postUser(BuildContext context) async {
-
     print(userIdController.text);
     print(passwordController.text);
     print(nameController.text);
     print(nicknameController.text);
     print(phoneController.text);
-    print(selectedLocation.longitude.toString());
-    print(selectedLocation.latitude.toString());
-
+    print(selectedLocation?.longitude.toString()); // 수정된 부분
+    print(selectedLocation?.latitude.toString());  // 수정된 부분
 
     if (_formKey.currentState?.validate() ?? false) {
       if (!isEmailVerified) {
@@ -117,8 +85,8 @@ class _SignUpPageState extends State<SignUpPage> {
             "nickname": nickname,
             "phone": phone,
             "role": "user",
-            "longitude": selectedLocation.longitude.toString(),
-            "latitude": selectedLocation.latitude.toString(),
+            "longitude": selectedLocation?.longitude.toString() ?? '', // 수정된 부분
+            "latitude": selectedLocation?.latitude.toString() ?? '',  // 수정된 부분
           }),
         );
 
@@ -227,89 +195,14 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _onLocationIconPressed() async {
-    selectedLocation = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text('위치 선택'),
-          ),
-          body: NaverMap(
-            onMapReady: (controller) async {
-              _mapController = controller;
-              moveToLocation(_mapController!, currentPosition.latitude, currentPosition.longitude);
-              final marker = NMarker(id: 'currentPosition_marker', position: currentPosition);
-              final onMarkerInfoWindow = NInfoWindow.onMarker(id: 'currentPosition_marker_info', text: "내 위치");
-              _mapController!.addOverlay(marker);
-              marker.openInfoWindow(onMarkerInfoWindow);
-            },
-            onMapTapped: (point, latLng) {
-              Navigator.pop(context, latLng);
-            },
-            onSymbolTapped: (symbol){
-              Navigator.pop(context, symbol.position);
-            },
-          ),
-        ),
-      ),
-    );
+    selectedLocation = await _locationService.openMapPage(context);
 
     if (selectedLocation != null) {
-      String currentAddress = await getAddressFromCoordinates(selectedLocation.latitude, selectedLocation.longitude);
+      String currentAddress = await _locationService.getAddressFromCoordinates(
+          selectedLocation!.latitude, selectedLocation!.longitude);
       setState(() {
         addressController.text = currentAddress; // 주소 필드에 주소를 저장
       });
-    }
-  }
-
-  void moveToLocation(NaverMapController controller, double latitude, double longitude) async {
-    NCameraUpdate cameraUpdate = NCameraUpdate.fromCameraPosition(
-        NCameraPosition(target: NLatLng(latitude, longitude), zoom: 15)
-    );
-    await controller.updateCamera(cameraUpdate);
-  }
-
-  double truncateCoordinate(double coord, {int precision = 3}) {
-    double mod = pow(10.0, precision).toDouble();
-    return ((coord * mod).round().toDouble() / mod);
-  }
-
-  Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
-    String apiKey = dotenv.env['VWORLD_API_KEY'] ?? 'API_KEY_NOT_FOUND';
-
-    latitude = truncateCoordinate(latitude, precision: 3);
-    longitude = truncateCoordinate(longitude, precision: 3);
-
-    String baseUrl =
-        'https://api.vworld.kr/req/address?service=address&request=getAddress&key=$apiKey&point=';
-
-    try {
-      for (int i = 0; i < 10; i++) {
-        String url = '$baseUrl$longitude,$latitude&type=ROAD';
-        print('Sending request to: $url');
-        final response = await http.get(Uri.parse(url));
-
-        if (response.statusCode == 200) {
-          var jsonResponse = json.decode(response.body);
-
-          if (jsonResponse['response'] != null && jsonResponse['response']['status'] == 'OK') {
-            var results = jsonResponse['response']['result'];
-            if (results != null && results.isNotEmpty) {
-              var address = results[0]['text'];
-              print('Address found: $address');
-              return address;
-            }
-          }
-        }
-
-        latitude += 0.001;
-        longitude += 0.001;
-      }
-
-      return '알 수 없는 위치';
-    } catch (e) {
-      print('Exception caught: $e');
-      return '네트워크 오류가 발생했습니다';
     }
   }
 
@@ -635,4 +528,3 @@ class PhoneNumberFormatter extends TextInputFormatter {
     return newValue;
   }
 }
-
