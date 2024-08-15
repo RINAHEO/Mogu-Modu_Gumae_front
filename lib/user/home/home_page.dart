@@ -13,7 +13,9 @@ import 'menu_page.dart';
 import 'notification_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Map<String, dynamic> userInfo;
+
+  const HomePage({super.key, required this.userInfo});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -568,6 +570,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    // widget.userInfo에 접근하여 유저 정보를 사용할 수 있습니다.
+    String nickname = widget.userInfo['nickname'] ?? '사용자';
+
     List<Widget> widgetOptions = <Widget>[
       ListView.builder(
         itemCount: posts.length,
@@ -702,7 +707,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               SizedBox(height: 10),
               Text(
-                '모비짱',
+                nickname, // 유저 이름 표시
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -1108,6 +1113,3 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
-
-
-

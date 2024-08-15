@@ -40,7 +40,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> _initCurrentLocation() async {
     NLatLng currentPosition = await _locationService.initCurrentLocation();
-    // currentPosition을 사용하여 초기화할 다른 로직이 필요할 경우 추가
   }
 
   Future<void> postUser(BuildContext context) async {
