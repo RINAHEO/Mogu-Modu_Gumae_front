@@ -22,9 +22,15 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController nicknameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController verificationCodeController = TextEditingController();
+  final TextEditingController phoneVerificationCodeController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  late final NLatLng selectedLocation;
 
   final _formKey = GlobalKey<FormState>();
   bool isVerificationFieldVisible = false;
+  bool isPhoneVerificationFieldVisible = false;
+  bool isEmailVerified = false;
+  bool isPhoneVerified = false;
   NaverMapController? _mapController;
   late NLatLng currentPosition;
 
@@ -68,14 +74,35 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> postUser(BuildContext context) async {
+
+    print(userIdController.text);
+    print(passwordController.text);
+    print(nameController.text);
+    print(nicknameController.text);
+    print(phoneController.text);
+    print(selectedLocation.longitude.toString());
+    print(selectedLocation.latitude.toString());
+
+
     if (_formKey.currentState?.validate() ?? false) {
+      if (!isEmailVerified) {
+        _showErrorDialog('오류', '이메일 인증을 완료해주세요.');
+        return;
+      }
+
+      if (!isPhoneVerified) {
+        _showErrorDialog('오류', '핸드폰 인증을 완료해주세요.');
+        return;
+      }
+
       String userId = userIdController.text;
       String password = passwordController.text;
       String name = nameController.text;
       String nickname = nicknameController.text;
-      String phone = phoneController.text;
+      String phone = phoneController.text.replaceAll('-', '');
+      String address = addressController.text;
 
-      String url = 'http://localhost:8080/user';
+      String url = 'http://10.0.2.2:8080/user'; // 안드로이드 에뮬레이터의 경우
 
       try {
         final response = await http.post(
@@ -90,8 +117,8 @@ class _SignUpPageState extends State<SignUpPage> {
             "nickname": nickname,
             "phone": phone,
             "role": "user",
-            "longitude": currentPosition.longitude.toString(),
-            "latitude": currentPosition.latitude.toString()
+            "longitude": selectedLocation.longitude.toString(),
+            "latitude": selectedLocation.latitude.toString(),
           }),
         );
 
@@ -168,13 +195,39 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  void _verifyPhoneNumber() {
+    final phoneNumber = phoneController.text;
+    final phoneRegExp = RegExp(r'^\d{3}-\d{4}-\d{4}$');
+
+    if (phoneNumber.isEmpty || !phoneRegExp.hasMatch(phoneNumber)) {
+      _showErrorDialog('오류', '유효한 핸드폰 번호를 입력해주세요');
+    } else {
+      setState(() {
+        isPhoneVerificationFieldVisible = true;
+      });
+      _showErrorDialog('인증번호 발송', '핸드폰 인증번호를 발송했습니다.');
+      print('핸드폰 인증 로직 실행');
+    }
+  }
+
   void _confirmVerificationCode() {
-    // 인증번호 확인 로직을 여기 추가하세요
+    setState(() {
+      isEmailVerified = true;
+    });
+    _showErrorDialog('인증 성공', '이메일 인증이 완료되었습니다.');
     print('인증번호 확인 로직 실행');
   }
 
+  void _confirmPhoneVerificationCode() {
+    setState(() {
+      isPhoneVerified = true;
+    });
+    _showErrorDialog('인증 성공', '핸드폰 인증이 완료되었습니다.');
+    print('핸드폰 인증번호 확인 로직 실행');
+  }
+
   Future<void> _onLocationIconPressed() async {
-    final NLatLng? selectedLocation = await Navigator.push(
+    selectedLocation = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -204,7 +257,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if (selectedLocation != null) {
       String currentAddress = await getAddressFromCoordinates(selectedLocation.latitude, selectedLocation.longitude);
       setState(() {
-        nicknameController.text = currentAddress;
+        addressController.text = currentAddress; // 주소 필드에 주소를 저장
       });
     }
   }
@@ -276,7 +329,7 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ),
       ),
-      backgroundColor: Colors.white,  // 배경색을 흰색으로 설정
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -305,7 +358,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(height: 16),
                 _buildTextFieldWithLabel("이름", true, "이름을 입력하세요", nameController),
                 SizedBox(height: 16),
+                _buildTextFieldWithLabel("닉네임", true, "닉네임을 입력하세요", nicknameController),
+                SizedBox(height: 16),
                 _buildPhoneNumberField(),
+                if (isPhoneVerificationFieldVisible) ...[
+                  SizedBox(height: 16),
+                  _buildPhoneVerificationCodeField(),
+                ],
                 SizedBox(height: 16),
                 _buildLocationField(),
               ],
@@ -392,30 +451,76 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget _buildPhoneNumberField() {
-    return _buildTextFieldWithLabel(
-      "핸드폰번호",
-      true,
-      "핸드폰 번호를 입력하세요",
-      phoneController,
-      keyboardType: TextInputType.phone,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(11),
-        PhoneNumberFormatter(),
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTextFieldWithLabel(
+            "핸드폰번호",
+            true,
+            "핸드폰 번호를 입력하세요",
+            phoneController,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+              PhoneNumberFormatter(),
+            ],
+          ),
+        ),
+        SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: _verifyPhoneNumber,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFB34FD1),
+            minimumSize: Size(150, 50),
+          ),
+          child: Text(
+            '인증하기',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhoneVerificationCodeField() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTextFieldWithLabel(
+            "핸드폰 인증번호 입력",
+            true,
+            "핸드폰 인증번호를 입력하세요",
+            phoneVerificationCodeController,
+          ),
+        ),
+        SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: _confirmPhoneVerificationCode,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFB34FD1),
+            minimumSize: Size(150, 50),
+          ),
+          child: Text(
+            '인증번호 확인',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildLocationField() {
     return _buildTextFieldWithLabel(
-      "나의지역",
+      "주소",
       true,
-      "지역을 입력하세요",
-      nicknameController,
+      "주소를 선택해주세요",
+      addressController,
       suffixIcon: IconButton(
         icon: Icon(Icons.location_on, color: Color(0xFFB34FD1)),
         onPressed: _onLocationIconPressed,
       ),
+      readOnly: true,
     );
   }
 
@@ -427,6 +532,7 @@ class _SignUpPageState extends State<SignUpPage> {
         TextInputType? keyboardType,
         List<TextInputFormatter>? inputFormatters,
         Widget? suffixIcon,
+        bool readOnly = false,
       }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,6 +577,7 @@ class _SignUpPageState extends State<SignUpPage> {
             errorStyle: TextStyle(color: Colors.red),
             suffixIcon: suffixIcon,
           ),
+          readOnly: readOnly,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return '$labelText를 입력해주세요';
@@ -485,7 +592,7 @@ class _SignUpPageState extends State<SignUpPage> {
               if (value.length < 8 || value.length > 16) {
                 return '패스워드는 8자에서 16자 사이여야 합니다';
               }
-            } else if (labelText == "이름" || labelText == "나의지역") {
+            } else if (labelText == "이름" || labelText == "닉네임") {
               if (value.length > 12) {
                 return '$labelText는 최대 12자까지 입력할 수 있습니다';
               }
@@ -528,3 +635,4 @@ class PhoneNumberFormatter extends TextInputFormatter {
     return newValue;
   }
 }
+
