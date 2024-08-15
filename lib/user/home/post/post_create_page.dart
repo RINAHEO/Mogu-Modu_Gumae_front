@@ -1,14 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mogu_app/service/location_service.dart';
 
 class PostCreatePage extends StatefulWidget {
   const PostCreatePage({super.key});
@@ -27,8 +23,10 @@ class _PostCreatePageState extends State<PostCreatePage> {
   String purchaseStatus = '구매 예정';
   DateTime selectedDate = DateTime.now();
   String meetingPlace = '구매를 위해 모일 장소';
+
+  final LocationService _locationService = LocationService(); // LocationService 인스턴스 생성
   NaverMapController? _mapController;
-  late NLatLng currentPosition;
+  NLatLng? currentPosition;
 
   @override
   void initState() {
@@ -39,36 +37,12 @@ class _PostCreatePageState extends State<PostCreatePage> {
   }
 
   Future<void> _initCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      print('Location services are disabled.');
-      return;
+    try {
+      currentPosition = await _locationService.initCurrentLocation();
+      setState(() {}); // 위치 정보 업데이트
+    } catch (e) {
+      print('위치 정보를 초기화하는 중 오류 발생: $e');
     }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        print('Location permissions are denied');
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      print('Location permissions are permanently denied');
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    setState(() {
-      currentPosition = NLatLng(position.latitude, position.longitude);
-    });
   }
 
   void _updatePrice() {
@@ -229,89 +203,11 @@ class _PostCreatePageState extends State<PostCreatePage> {
     }
   }
 
-  void moveToLocation(NaverMapController controller, double latitude, double longitude) async {
-    NCameraUpdate cameraUpdate = NCameraUpdate.fromCameraPosition(
-        NCameraPosition(target: NLatLng(latitude, longitude), zoom: 15)
-    );
-    await controller.updateCamera(cameraUpdate);
-  }
-
-  double truncateCoordinate(double coord, {int precision = 3}) {
-    double mod = pow(10.0, precision).toDouble();
-    return ((coord * mod).round().toDouble() / mod);
-  }
-
-  Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
-    String apiKey = dotenv.env['VWORLD_API_KEY'] ?? 'API_KEY_NOT_FOUND';
-
-    latitude = truncateCoordinate(latitude, precision: 3);
-    longitude = truncateCoordinate(longitude, precision: 3);
-
-    String baseUrl =
-        'https://api.vworld.kr/req/address?service=address&request=getAddress&key=$apiKey&point=';
-
-    try {
-      for (int i = 0; i < 10; i++) {
-        String url = '$baseUrl$longitude,$latitude&type=ROAD';
-        print('Sending request to: $url');
-        final response = await http.get(Uri.parse(url));
-
-        if (response.statusCode == 200) {
-          var jsonResponse = json.decode(response.body);
-
-          if (jsonResponse['response'] != null && jsonResponse['response']['status'] == 'OK') {
-            var results = jsonResponse['response']['result'];
-            if (results != null && results.isNotEmpty) {
-              var address = results[0]['text'];
-              print('Address found: $address');
-              return address;
-            }
-          }
-        }
-
-        // If address not found, adjust the coordinates slightly
-        latitude += 0.001;
-        longitude += 0.001;
-      }
-
-      // Fallback address if no valid address is found
-      return '알 수 없는 위치';
-    } catch (e) {
-      print('Exception caught: $e');
-      return '네트워크 오류가 발생했습니다';
-    }
-  }
-
   Future<void> _selectLocation() async {
-    final NLatLng? selectedLocation = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text('모일 위치 선택'),
-          ),
-          body: NaverMap(
-            onMapReady: (controller) async {
-              _mapController = controller;
-              moveToLocation(_mapController!, currentPosition.latitude, currentPosition.longitude);
-              final marker = NMarker(id: 'currentPosition_marker', position: currentPosition);
-              final onMarkerInfoWindow = NInfoWindow.onMarker(id: 'currentPosition_marker_info', text: "내 위치");
-              _mapController!.addOverlay(marker);
-              marker.openInfoWindow(onMarkerInfoWindow);
-            },
-            onMapTapped: (point, latLng) {
-              Navigator.pop(context, latLng);
-            },
-            onSymbolTapped: (symbol){
-              Navigator.pop(context, symbol.position);
-            },
-          ),
-        ),
-      ),
-    );
-
+    final NLatLng? selectedLocation = await _locationService.openMapPage(context);
     if (selectedLocation != null) {
-      String currentAddress = await getAddressFromCoordinates(selectedLocation.latitude, selectedLocation.longitude);
+      String currentAddress = await _locationService.getAddressFromCoordinates(
+          selectedLocation.latitude, selectedLocation.longitude);
       setState(() {
         meetingPlace = currentAddress;
       });
@@ -619,8 +515,3 @@ class _PostCreatePageState extends State<PostCreatePage> {
     );
   }
 }
-
-
-
-
-

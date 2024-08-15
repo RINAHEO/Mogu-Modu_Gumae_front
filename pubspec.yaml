@@ -23,6 +23,7 @@ dependencies:
   webview_flutter: ^4.0.0
   google_mobile_ads: ^2.0.0
   flutter_dotenv: ^5.0.2
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
