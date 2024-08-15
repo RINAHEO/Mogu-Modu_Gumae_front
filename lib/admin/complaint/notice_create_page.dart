@@ -12,7 +12,7 @@ class NoticeCreatePage extends StatelessWidget {
     String title = titleController.text;
     String content = contentController.text;
 
-    String url = 'http://localhost:8080/notice';
+    String url = 'http://10.0.2.2:8080/notice'; // 안드로이드 에뮬레이터의 경우
 
     try {
       final response = await http.post(
